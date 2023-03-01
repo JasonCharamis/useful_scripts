@@ -39,7 +39,7 @@ my %data = ();
 
 
 
-open ( IN, $ARGV[0] );
+open ( IN, $ARGV[0] or die "USAGE: perl ortholog_counts2orthology.pl Orthogroups.GeneCount.tsv");
 
 open ( OUT0, ">orthology_results.tsv" );
 open ( OUT1, ">orthology_results_for_R.txt" );
