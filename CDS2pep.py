@@ -44,12 +44,7 @@ def translate(seq):
 
 
 def write_file(fasta,filename):
-
-    """
-    Takes a dictionary and writes it to a fasta file
-    Must specify the filename when calling the function
-    """
-  
+    
     with open(filename, "w") as outfile:
         for keys,seqs in fasta.items():
             keys = keys.strip("\n")
@@ -59,7 +54,7 @@ def write_file(fasta,filename):
 
 parser = argparse.ArgumentParser(
                     prog='CDS2pep.py',
-                    description='Program to translate DNA to proteins',
+                    description='Program to translate CDS to proteins - only 1st frame translation',
                     )
 
 parser.add_argument('filename'), # positional argument
