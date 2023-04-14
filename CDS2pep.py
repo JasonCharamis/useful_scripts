@@ -81,17 +81,18 @@ name=""
 for line in fileinput.input():
     line=line.strip('\n')
     
-    if re.search (">",line):
-        line = re.sub (">","",line)
-        line = re.sub("PP","P",line)
-        name = line
-        fasta[name]=""
-        
-    elif re.search("\--",line):
-        next
+   if line:
     
-    else:
-        seq=line.upper()
-        fasta[name]=translate(seq)
+        if re.search (">",line):
+            line = re.sub (">","",line)
+            name = line
+            fasta[name]=""
+        
+        elif re.search("\--",line):
+            next
+    
+        else:
+            seq=line.upper()
+            fasta[name]=translate(seq)
 
 write_file(fasta,protein_file)
