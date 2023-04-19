@@ -23,4 +23,4 @@ awk -F"\n>" 'BEGIN { header=0; print "Sequences\tHamming_Distance"; } {
 
             print "seq"head"-seq"h"\t"count | "sort -u"
         }
-    }
+    }' $1
