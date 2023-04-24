@@ -10,7 +10,7 @@ my %filter=();
 my @inputs=();
 
 
-open ( IN, $ARGV[0] ) or die "USAGE: perl filter_fasta.pl 2-LINE_FASTA_FILE ID_TO_REMOVE]" ;
+open ( IN, $ARGV[0] ) or die "USAGE: perl filter_fasta.pl 2-LINE_FASTA_FILE [LIST_OF_IDs_TO_REMOVE]" ;
 open ( IN1, $ARGV[1]);
 
 
