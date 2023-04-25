@@ -3,7 +3,6 @@ awk -F"\n>" 'BEGIN { header=0; print "Sequences\tHamming_Distance"; } {
     if ( $1 ~ />/ ) { header +=1; }
 
     else {
-
         for (i=1; i<=length($1); i++) {
             position=substr(substr($1,i,length($1)),1,1);
             sequence[header][i]=position;
