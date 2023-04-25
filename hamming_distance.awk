@@ -1,6 +1,6 @@
 awk -F"\n>" 'BEGIN { header=0; print "Sequences\tHamming_Distance"; } {
 
-    if ( $1 ~ />/ ) { header +=1; }
+    if ( $1 ~ />/ ) { header += 1; }
 
     else {
         for (i=1; i<=length($1); i++) {
@@ -19,7 +19,6 @@ awk -F"\n>" 'BEGIN { header=0; print "Sequences\tHamming_Distance"; } {
                     }
                 }
             }
-
             print "seq"head"-seq"h"\t"count | "sort -u"
         }
     }' $1
