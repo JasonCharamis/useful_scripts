@@ -1,4 +1,4 @@
-#Combine the contents of two files based on common identifier.
+#Join or combine the contents of two files based on common identifier.
 #Can be easily adjusted for which columns and at what order they will be printed.
 
 
