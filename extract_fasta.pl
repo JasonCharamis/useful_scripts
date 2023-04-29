@@ -58,8 +58,6 @@ while ( my $line=<IN1> ) {
 close (IN);
 
 
-my %seen=();
-
 for my $head ( keys %fasta ) {
     if ( exists $filter{$head} ) {
         print ">","$head\n$fasta{$head}\n";
