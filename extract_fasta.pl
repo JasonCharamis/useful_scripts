@@ -1,18 +1,18 @@
-use strict;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+use strict;
 use warnings;
 
-my @f = ();
-my %fasta=();
-my $seq=();
-my $id = ();
-my @filter=();
-my %filter=();
-my @inputs=();
-
-
-open ( IN, $ARGV[0] ) or die "USAGE: perl extract_fasta.pl 2-LINE_FASTA_FILE [LIST_OF_IDs_TO_EXTRACT]" ;
+open ( IN, $ARGV[0] ) or die "USAGE: perl filter_fasta.pl 2-LINE_FASTA_FILE [LIST_OF_IDs_TO_EXTRACT]" ;
 open ( IN1, $ARGV[1]);
 
+
+my @f = ();
+my @h = ();
+my $seq = ();
+my $id = ();
+my @filter = ();
+my %filter = ();
+my @inputs = ();
+my %fasta = ();
 
 sub FastaParser {
 
@@ -26,24 +26,22 @@ sub FastaParser {
         $id = $line;
     }
 
-    elsif ( $line =~ /\--/ ) {
-        next;
-    }
-
-    else {
+    elsif ( $line !~ /\--/ ) {
         $line =~ s/\*$|\.$//g;
+        $line = uc ($line);
         $fasta{$id}=$line;
     }
 
 }
 
 
-#fasta hash, genes to extract
+#fasta hash, genes to remove
 
-sub FilternPrint {
+sub FastaFile {
     @filter=@_;
-    chomp $filter[0];
-    $filter{$filter[0]}=1;
+    @h = split (/\t/,$filter[0]);
+    chomp $h[1];
+    $filter{$h[0]}{$h[1]}=1;
 }
 
 
@@ -51,15 +49,18 @@ while ( my $line = <IN> ) {
     FastaParser ($line);
 }
 
+
 while ( my $line=<IN1> ) {
-    FilternPrint($line);
+    FastaFile($line);
 }
 
 close (IN);
 
 
 for my $head ( keys %fasta ) {
-    if ( exists $filter{$head} ) {
-        print ">","$head\n$fasta{$head}\n";
+    for my $id ( keys %{$filter{$head}} ) {
+        if ( exists $fasta{$head} ) {
+            print "$head\t$id\t$fasta{$head}\n";
+        }
     }
 }
