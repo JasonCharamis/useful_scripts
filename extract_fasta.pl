@@ -35,7 +35,7 @@ sub FastaParser {
 }
 
 
-#fasta hash, genes to remove
+#fasta hash, genes to extract
 
 sub FastaFile {
     @filter=@_;
