@@ -43,8 +43,6 @@ foreach ( keys %fasta ) {
 }
 
 
-
-
 sub FastaParser {
 
     @inputs = @_;
