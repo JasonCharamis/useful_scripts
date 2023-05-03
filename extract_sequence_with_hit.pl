@@ -14,7 +14,6 @@ my %range = ();
 open ( IN, $ARGV[0] );
 
 while ( my $line = <IN> ) {
-
     my @f = split (/\t/,$line);
     $range{$f[0]}="$f[6]:$f[7]";
 
