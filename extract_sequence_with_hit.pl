@@ -16,7 +16,6 @@ open ( IN, $ARGV[0] );
 while ( my $line = <IN> ) {
     my @f = split (/\t/,$line);
     $range{$f[0]}="$f[6]:$f[7]";
-
 }
 
 ## load fasta ##
@@ -26,26 +25,18 @@ while ( my $line = <IN1> ) {
     FastaParser($line);
 }
 
-
 ## extract query range with hit ##
 foreach ( keys %fasta ) {
-
     if ( exists $range{$_} ) {
         my @h = split (/:/,$range{$_});
         $new_fasta{$_}=substr($fasta{$_},$h[0],$h[1]);
         print "$_\t$new_fasta{$_}\n";
-    }
-
-    else {
-        print "$_\t$fasta{$_}\n";
     }  
 }
 
 
 sub FastaParser {
-
     @inputs = @_;
-
     my $line=$inputs[0];
     chomp $line;
 
@@ -59,5 +50,5 @@ sub FastaParser {
         $line = uc ($line);
         $fasta{$id}=$line;
     }
-
+    
 }
