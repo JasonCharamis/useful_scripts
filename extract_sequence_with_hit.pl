@@ -31,7 +31,11 @@ foreach ( keys %fasta ) {
         my @h = split (/:/,$range{$_});
         $new_fasta{$_}=substr($fasta{$_},$h[0],$h[1]);
         print "$_\t$new_fasta{$_}\n";
-    }  
+    }
+    
+    else {
+        print "$_ was not found";
+    }
 }
 
 
