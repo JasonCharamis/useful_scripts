@@ -15,6 +15,6 @@ def resolve_polytomies(input):
     ## resolve polytomies in tree ##
     bifurcating = tree.resolve_polytomy(recursive=True)
 
-    tree.write(format=1, outfile=input+".resolved_polytomies")
+    bifurcating.write(format=1, outfile=input+".resolved_polytomies")
     
 resolve_polytomies(input)
