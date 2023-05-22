@@ -8,6 +8,8 @@ args = parser.parse_args()
 
 input = args.filename
 
+if len(input) != 1:
+    print ("USAGE: python argv[0] <Tree in Newick format>")
 
 def midpoint_root(input):
     tree = Tree(input, format = 1)
