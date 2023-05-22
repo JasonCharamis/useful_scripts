@@ -3,13 +3,10 @@ import argparse
 from ete3 import Tree
 
 parser = argparse.ArgumentParser()
-parser.add_argument('filename')
+parser.add_argument('Tree in Newick format')
 args = parser.parse_args()
 
 input = args.filename
-
-if len(input) != 1:
-    print ("USAGE: python argv[0] <Tree in Newick format>")
 
 def midpoint_root(input):
     tree = Tree(input, format = 1)
