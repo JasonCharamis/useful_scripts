@@ -13,8 +13,8 @@ def resolve_polytomies(input):
     tree = Tree(input, format = 1)
     
     ## resolve polytomies in tree ##
-    bifurcating = tree.resolve_polytomy(recursive=True)
+    tree.resolve_polytomy(recursive=True)
 
-    bifurcating.write(format=1, outfile=input+".resolved_polytomies")
+    tree.write(format=1, outfile=input+".resolved_polytomies")
     
 resolve_polytomies(input)
