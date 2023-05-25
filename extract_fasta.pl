@@ -1,3 +1,5 @@
+# Script to extract fasta sequences based on list of IDs #
+
 use strict;
 use warnings;
 
