@@ -300,45 +300,6 @@ foreach ( sort keys %phlebotominae ) {
 }
 
 
-#orthogroups specific (all or all-but-one) to mosquitoes
-foreach ( sort keys %culicidae ) {
-    unless ( exists $universal_single_copy{$_} ) {
-	unless ( exists $universal{$_} ) {
-	    unless ( exists $species_specific{$_} ) {
-		unless ( exists $brachycera{$_} ) {
-		    unless ( exists $phlebotominae{$_} ) {
-			unless ( exists $chironomidae{$_} ) {
-			    if ( $culicidae{$_} >= 2 ) {
-				$culicidae_wide{$_} = $culicidae{$_};
-			    }
-			}
-		    }
-		}
-	    }
-	}
-    }
-}
-
-
-
-#orthogroups specific (all or all-but-one) to midges
-foreach ( sort keys %chironomidae ) {
-    unless ( exists $universal{$_} ) {
-	unless ( exists $species_specific{$_} ) {
-	    unless ( exists $brachycera{$_} ) {
-		unless ( exists $phlebotominae{$_} ) {
-		    unless ( exists $culicidae{$_} ) {
-			if ( $chironomidae{$_} >= 2 ) {
-			    $chironomidae_wide{$_} = $chironomidae{$_};
-			}
-		    }
-		}
-	    }
-	}
-    }
-}
-
-
 #now that i have the OG ids per category, I have to parse the file and print the number of genes per orthogroup per species
 for my $nl (0..scalar(@file)-1 )   {
 
