@@ -44,8 +44,8 @@ open ( IN2, $ARGV[1] ); ## Orthogroups_UnassignedGenes.tsv
 
 open ( OUT0, ">orthology_results.tsv" );
 open ( OUT1, ">orthology_results_for_R.txt" );
-  
-    
+
+
 my %species_unassigned = (); ## hash to save the number of unassigned genes per species
 
 while (my $line2 = <IN2>) {  
@@ -55,12 +55,12 @@ while (my $line2 = <IN2>) {
             $species_unassigned{$tabs[$n]} = 1;
         }
     }
-
 }
 
 foreach (keys %species_unassigned) {
-    $species_unassigned{$_} = `grep -c $_ $ARGV[1]`;
+    $species_unassigned{$_} = `grep -c $_ $ARGV[1]`-1;
 }
+
 
 
 while ( my $line = <IN> ) {
@@ -313,8 +313,8 @@ foreach ( sort keys %uniprint ) {
     $data{$sp}{$n}=$uniprint{$_};
    }
 
-print OUT0 "Species\tUniversal_Single_Copy\tUniversal\tPhlebotominae_wide\tPhlebotominae_patchy\tPhlebotomus_specific\tLutzomyia_specific\tNematocera_Patchy\tDiptera_Patchy\tSpecies_specific\n";
 
+print OUT0 "Species\tUniversal_Single_Copy\tUniversal\tPhlebotominae_wide\tPhlebotominae_patchy\tPhlebotomus_specific\tLutzomyia_specific\tNematocera_Patchy\tDiptera_Patchy\tSpecies_specific\n";
 print OUT1 "Species\tNumber_of_Genes\tType\n";
 
 
@@ -414,7 +414,7 @@ for my $sp ( sort keys %data ) {     #counting arrays and scalars should be init
 	$sum_spsp += $number_spsp[$num];
     }
 
-    my $species_specific_all = $sum_spsp+$species_unassigned{$sp}-1;
+    my $species_specific_all = $sum_spsp+$species_unassigned{$sp};
 
     #output in tab-separated, human-readable format
     print OUT0 "$sp\t$sum_uni_single_copy\t$sum_uni\t$sum_phlw\t$sum_phl_patchy\t$sum_phls\t$sum_ltz\t$sum_nematocera_patchy\t$sum_diptera_patchy\t$species_specific_all\n";
