@@ -444,7 +444,7 @@ for my $sp ( sort keys %subsets) {
 	my %seen2;
 
 	if (defined($subsets{$sp}{$orthology}) && ref($subsets{$sp}{$orthology}) eq 'ARRAY') {
-	    print OUT1 join(",", @{$subsets{$sp}{$orthology}});
+	   # print OUT1 join(",", @{$subsets{$sp}{$orthology}});
 
 	    for my $og (@{$subsets{$sp}{$orthology}}) {
 		if (exists $OG2genes{$og}) {
