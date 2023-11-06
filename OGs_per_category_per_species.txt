@@ -1,1 +1,0 @@
-Species	Universal_single_copy	Universal	Phlebotominae_wide	Phlebotomus_specific	Lutzomyia_specific	Phlebotominae_patchy	Nematocera_patchy	Diptera_patchy	Species_specific
