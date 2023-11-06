@@ -2,6 +2,25 @@
 use strict;
 use warnings;
 
+# Print script usage
+sub print_usage {
+    print <<"END_USAGE";
+
+pwd: Orthofinder/Orthogroups
+Usage: perl classify_orthogroups.pl Orthogroups.GeneCounts.tsv Orthogroups_Unassigned.tsv Orthogroups.txt
+
+Options:
+  -h, --help    Display this help message
+
+END_USAGE
+}
+
+# Process command line arguments
+if (@ARGV == 0 or $ARGV[0] eq '-h' or $ARGV[0] eq '--help') {
+    print_usage();
+    exit;
+}
+
 #scalars, arrays and hashes for parsing original file and counting number of species per OG
 my @f = ();
 my @count = ();
@@ -34,17 +53,19 @@ my @h = ();
 my @j = ();
 my @y = ();
 my $hg = ();
-my %uniprint = ();
 
 #scalars, arrays and hashes for calculating the number of genes per category (universal, phlebotominae_wide etc) per species and printing results
 my %data = ();
 
 open ( IN, $ARGV[0] ); ## Orthogroups.GeneCount.tsv
 open ( IN2, $ARGV[1] ); ## Orthogroups_UnassignedGenes.tsv
+open ( IN3, $ARGV[2] ); ## Orthogroups.txt
 
-open ( OUT0, ">orthology_results.tsv" );
-open ( OUT1, ">orthology_results_for_R.txt" );
+open ( OUT0, ">orthology_distribution_for_R.txt" );
+open ( OUT1, ">OGs_per_category_per_species.txt" );
+open ( OUT2, ">orthology_distribution.tsv" );
 
+##=============================================================## PARSE THROUGH THE Orthogroups_Unassigned.tsv Orthogroups.txt FILES AND GET UNASSIGNED OG IDs ##==================================================##
 
 my %species_unassigned = (); ## hash to save the number of unassigned genes per species
 
@@ -58,15 +79,29 @@ while (my $line2 = <IN2>) {
 }
 
 foreach (keys %species_unassigned) {
-    $species_unassigned{$_} = `grep -c $_ $ARGV[1]`-1;
+    $species_unassigned{$_} = `grep $_ $ARGV[1] | grep -v "Orthogroup" | cut -f1`;
 }
 
+my %OG2genes = (); ## hash to save the number of unassigned genes per species
 
+while (my $line3 = <IN3>) {
+    chomp $line3;
+    my @t = split(/: /, $line3);
+    
+    foreach ( @t ) {
+	$OG2genes{$t[0]} = $t[1]; # OG to genes
+    }
+}
 
+##=============================================================## PARSE THROUGH THE Orthogroups.GeneCount.tsv FILE, COUNT OG REPRESENTATION AND GENERATE RELEVANT ORTHOGROUP CATEGORIES ##======================##
 while ( my $line = <IN> ) {
+    
     chomp $line;
-    push ( @file, $line);
-
+    
+    if ( $line =~ /\w/ ) {
+	push ( @file, $line);
+    }
+  
     #first characterize orthogroups based on their presence (universal, widespread, phlebotominae, culicidae, chironomidae, nematocera, brachycera, none - note that this is per species )    
     if ( $. > 1 ) { ## skip header line with species names
 
@@ -292,134 +327,157 @@ foreach ( sort keys %brachycera) { #orthogroups present in diptera, with patchy 
 }
 
 
-for my $nl (0..scalar(@file)-1 ) { #now that i have the OG ids per category, I have to parse the file and print the number of genes per orthogroup per species
 
+##=============================================================## PARSE THROUGH THE FILE THE OBTAIN THE OGS FOR EACH CATEGORY PER SPECIES AS WELL AS THE GENE NUMBER OF EACH SUCH INSTANCE ##===================##
+
+for my $nl (0..scalar(@file)-1) {
     @j = split (/\n/,$file[0]);
-    @y = split (/\t/,$j[0] ); #create an array with the species names 
+    @y = split (/\t/,$j[0] ); # create an array with the species names
 
-    if ( $nl == 0 ) {next};
-    
+    if ($nl == 0) {
+        next;
+    }
+
     @h = split (/\t/,$file[$nl]);
 
-    for my $col (1..scalar( @h )-2 ) {
-	$uniprint{"$y[$col]:$h[0]"} = $h[$col];
+    my $orthogroup = $h[0];
+
+    for my $col (1..scalar(@h)-2) {
+        my $species = $y[$col];
+        my $gene_count = $h[$col];
+
+        $data{$species}{$orthogroup} = $gene_count;
+    }
+}
+
+my %subsets;
+my %gene_counts;
+
+for my $sp (sort keys %data) {
+    for my $og (sort keys %{$data{$sp}}) { 
+        if (exists($universal_single_copy{$og})) {
+            push(@{$subsets{$sp}{Universal_single_copy}}, $og);
+        } elsif (exists($universal{$og})) {
+            push(@{$subsets{$sp}{Universal}}, $og);
+        } elsif (exists($phlebotominae_wide{$og})) {
+            push(@{$subsets{$sp}{Phlebotominae_wide}}, $og);
+        } elsif (exists($phlebotomus_specific{$og})) {
+            push(@{$subsets{$sp}{Phlebotomus_specific}}, $og);
+        } elsif (exists($lutzomyia_specific{$og})) {
+            push(@{$subsets{$sp}{Lutzomyia_specific}}, $og);
+        } elsif (exists($phlebotominae_patchy{$og})) {
+            push(@{$subsets{$sp}{Phlebotominae_patchy}}, $og);
+        } elsif (exists($nematocera_patchy{$og})) {
+            push(@{$subsets{$sp}{Nematocera_patchy}}, $og);
+        } elsif (exists($diptera_patchy{$og})) {
+            push(@{$subsets{$sp}{Diptera_patchy}}, $og);
+        } elsif (exists($species_specific{$og})) {
+            push(@{$subsets{$sp}{Species_specific}}, $og);
+	}
+    }
+}
+
+# Generate counts for each category per species
+for my $sp (sort keys %subsets) {
+    for my $array (sort keys %{$subsets{$sp}}) {
+	for my $og (@{$subsets{$sp}{$array}}) {
+            if (exists $data{$sp}{$og}) {
+                $gene_counts{$sp}{$array} += $data{$sp}{$og};	
+            }
+        }
+    }
+}
+
+foreach my $sp (keys %gene_counts) {
+    for my $category (keys %{$gene_counts{$sp}}) {
+        print OUT0 "$sp\t$gene_counts{$sp}{$category}\t$category\n";
     }
 }
 
 
-foreach ( sort keys %uniprint ) {
-    ( my $n ) = ( $_ =~ /\:(OG\d+)/ );
-    ( my $sp ) = ( $_ =~ /^(\w+)\:/ );
-    $data{$sp}{$n}=$uniprint{$_};
-   }
+my @categories = qw(Species Universal_single_copy Universal Phlebotominae_wide Phlebotomus_specific Lutzomyia_specific Phlebotominae_patchy Nematocera_patchy Diptera_patchy Species_specific); ## Define custom order
 
+## Generate headers for the two files with common structure ( Species as Col1 and Relevant Categories in the rest of the columns )
+my $printed = 0; # Flag to keep track of whether OUT0 has been printed
 
-print OUT0 "Species\tUniversal_Single_Copy\tUniversal\tPhlebotominae_wide\tPhlebotominae_patchy\tPhlebotomus_specific\tLutzomyia_specific\tNematocera_Patchy\tDiptera_Patchy\tSpecies_specific\n";
-print OUT1 "Species\tNumber_of_Genes\tType\n";
+if (!$printed) { ## Print header ONCE, with custom order
+    print OUT0 "Species\t";
 
+    my $num_keys = scalar ( @categories );
+    my $count = 0;
 
-for my $sp ( sort keys %data ) {     #counting arrays and scalars should be initialized in every species, otherwise the gene numbers will keep adding
+    for my $orthology (@categories) {
+	$count++;
+		
+	if ($count < $num_keys) {
+	    print OUT1 "$orthology\t";
+	    print OUT2 "$orthology\t";
+	} else {
+	    print OUT1 "$orthology\n";
+	    print OUT2 "$orthology\n";
+	}
+    }
     
-    my @number_universal = ();
-    my @number_universal_single_copy = ();
-    my @number_phlw = ();
-    my @number_phl_patchy = ();
-    my @number_phls = ();
-    my @number_ltz = ();
-    my @number_nematocera_patchy = ();
-    my @number_diptera_patchy = ();
-    my @number_spsp = ();
-    my $sum_uni = 0;
-    my $sum_uni_single_copy = 0;
-    my $sum_phlw = 0;
-    my $sum_phl_patchy = 0;
-    my $sum_phls = 0;
-    my $sum_ltz = 0;
-    my $sum_nematocera_patchy = 0;
-    my $sum_diptera_patchy = 0;
-    my $sum_spsp = 0;
+    $printed = 1; # Set the flag to indicate that printing has been done
+}
 
-    for my $hg ( sort keys %{ $data{$sp} } ) { #get number of genes per OG per species 
 
-	if ( exists ( $universal_single_copy{$hg} ) ) {
-	    push ( @number_universal_single_copy, $data{$sp}{$hg} );
+## Print (OUT1) OG IDs per Category per species and (OUT2) actual output of gene counting per OG per species
+for my $sp ( sort keys %subsets) { 
+    print OUT1 "$sp\t"; ## First print the sorted species names
+    print OUT2 "$sp\t"; ## First print the sorted species names
+
+    my $num_orthology = scalar ( @categories );
+    my $orthology_count = 0;
+    my @unassigned_ogs = split (/\n/,$species_unassigned{$sp});	
+    
+    for my $orthology (@categories) {
+	$orthology_count++;
+
+	my %seen;  ## Initialize the 'seen' hash per category per species
+	my %seen2; ## Initialize the 'seen' hash per category per species
+
+	if (defined($subsets{$sp}{$orthology}) && ref($subsets{$sp}{$orthology}) eq 'ARRAY') {
+	    print OUT1 join(",", @{$subsets{$sp}{$orthology}});
+
+	    for my $og (@{$subsets{$sp}{$orthology}}) {
+		if (exists $OG2genes{$og}) {
+		    unless (exists $seen{$og}) {
+			print OUT1 "$OG2genes{$og}" . ",";
+			$seen{$og} = 1;
+		    }
+		}
+	    }
+	    
+	    if ($orthology_count < $num_orthology) {
+		print OUT1 "\t";
+	    } else {
+		print OUT1 "\n";
+	    }
+	} else {
+	    print("Cannot read this line.\n");
 	}
 
-	if ( exists ( $universal{$hg} ) ) {
-	    push ( @number_universal, $data{$sp}{$hg} );
+	unless (exists $seen2{$sp}) {
+	    print OUT2 "$gene_counts{$sp}{$orthology}";
+	    $seen2{$sp}{$orthology} = 1;
 	}
 
-	if ( exists ( $phlebotominae_wide{$hg} ) ) {
-	    push ( @number_phlw, $data{$sp}{$hg} );
+	if ($orthology =~ /Species_specific/) {
+	    unless (exists $seen2{$sp}) {
+		my $species_specific_all = $gene_counts{$sp}{$orthology} + scalar(@unassigned_ogs);
+		print OUT2 "\t$species_specific_all";
+	    }
+	} else {
+	    unless (exists $seen2{$sp}) {
+		print OUT2 "\t$gene_counts{$sp}{$orthology}";
+	    }
 	}
 
-	if ( exists ( $phlebotominae_patchy{$hg} ) ) {
-	    push ( @number_phl_patchy, $data{$sp}{$hg} );
-	}
-
-	if ( exists ( $nematocera_patchy{$hg} ) ) {
-	    push ( @number_nematocera_patchy, $data{$sp}{$hg} );
-	}
-
-	if ( exists ( $diptera_patchy{$hg} ) ) {
-	    push ( @number_diptera_patchy, $data{$sp}{$hg} );
-	}
-
-	if ( exists ( $phlebotomus_specific{$hg} ) ) {
-	    push ( @number_phls, $data{$sp}{$hg} );
-	}
-	
-	if ( exists ( $lutzomyia_specific{$hg} ) ) {
-	    push ( @number_ltz, $data{$sp}{$hg} );
-	}
-
-	if ( exists ( $species_specific{$hg} ) ) {
-	    push ( @number_spsp, $data{$sp}{$hg} );
+	if ($orthology_count < $num_orthology) {
+	    print OUT2 "\t";
+	} else {
+	    print OUT2 "\n";
 	}
     }
-
-    for my $num (0..scalar( @number_universal_single_copy))  {     #add number of genes per category per species
-	$sum_uni_single_copy += $number_universal_single_copy[$num];
-    }
-
-    for my $num (0..scalar( @number_universal))  {
-	$sum_uni += $number_universal[$num];
-    }
-
-    for my $num (0..scalar( @number_phlw))  {
-	$sum_phlw += $number_phlw[$num];
-    }
-
-    for my $num (0..scalar( @number_phls))  {
-	$sum_phls += $number_phls[$num];
-    }
-
-    for my $num (0..scalar( @number_ltz))  {
-	$sum_ltz += $number_ltz[$num];
-    }
-
-    for my $num (0..scalar( @number_phl_patchy))  {
-	$sum_phl_patchy += $number_phl_patchy[$num];
-    }
-
-    for my $num (0..scalar( @number_nematocera_patchy))  {
-	$sum_nematocera_patchy += $number_nematocera_patchy[$num];
-    }
-
-    for my $num (0..scalar( @number_diptera_patchy))  {
-	$sum_diptera_patchy += $number_diptera_patchy[$num];
-    }
- 
-    for my $num (0..scalar( @number_spsp))  {
-	$sum_spsp += $number_spsp[$num];
-    }
-
-    my $species_specific_all = $sum_spsp+$species_unassigned{$sp};
-
-    #output in tab-separated, human-readable format
-    print OUT0 "$sp\t$sum_uni_single_copy\t$sum_uni\t$sum_phlw\t$sum_phl_patchy\t$sum_phls\t$sum_ltz\t$sum_nematocera_patchy\t$sum_diptera_patchy\t$species_specific_all\n";
-
-    # output for ggplot2
-    print OUT1 "$sp\t$sum_uni_single_copy\tUniversal_single_copy\n$sp\t$sum_uni\tUniversal\n$sp\t$sum_phlw\tPhlebotominae_wide\n$sp\t$sum_phl_patchy\tPhlebotominae\n$sp\t$sum_phls\tPhlebotomus_specific\n$sp\t$sum_ltz\tLutzomyia_specific\n$sp\t$sum_nematocera_patchy\tNematocera\n$sp\t$sum_diptera_patchy\tDiptera\n$sp\t$species_specific_all\tSpecies_specific\n";
-
 }
