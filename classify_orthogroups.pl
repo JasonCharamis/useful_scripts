@@ -375,7 +375,13 @@ for my $sp (sort keys %data) {
             push(@{$subsets{$sp}{Species_specific}}, $og);
 	}
     }
+
+    my @unassigned_ogs = split (/\n/,$species_unassigned{$sp});
+    foreach ( @unassigned_ogs ) {
+	push(@{$subsets{$sp}{Species_specific}}, $_); ## Add the unassigned genes per species, as species-specific
+    }
 }
+
 
 # Generate counts for each category per species
 for my $sp (sort keys %subsets) {
@@ -388,8 +394,10 @@ for my $sp (sort keys %subsets) {
     }
 }
 
-foreach my $sp (keys %gene_counts) {
-    for my $category (keys %{$gene_counts{$sp}}) {
+print OUT0 "Species\tNumber_of_Genes\tType\n";
+
+foreach my $sp ( sort keys %gene_counts ) {
+    for my $category ( keys %{$gene_counts{$sp}}) {
         print OUT0 "$sp\t$gene_counts{$sp}{$category}\t$category\n";
     }
 }
@@ -401,7 +409,6 @@ my @categories = qw(Species Universal_single_copy Universal Phlebotominae_wide P
 my $printed = 0; # Flag to keep track of whether OUT0 has been printed
 
 if (!$printed) { ## Print header ONCE, with custom order
-    print OUT0 "Species\t";
 
     my $num_keys = scalar ( @categories );
     my $count = 0;
@@ -429,13 +436,12 @@ for my $sp ( sort keys %subsets) {
 
     my $num_orthology = scalar ( @categories );
     my $orthology_count = 0;
-    my @unassigned_ogs = split (/\n/,$species_unassigned{$sp});	
     
     for my $orthology (@categories) {
 	$orthology_count++;
 
-	my %seen;  ## Initialize the 'seen' hash per category per species
-	my %seen2; ## Initialize the 'seen' hash per category per species
+	my %seen;
+	my %seen2;
 
 	if (defined($subsets{$sp}{$orthology}) && ref($subsets{$sp}{$orthology}) eq 'ARRAY') {
 	    print OUT1 join(",", @{$subsets{$sp}{$orthology}});
@@ -448,12 +454,6 @@ for my $sp ( sort keys %subsets) {
 		    }
 		}
 	    }
-	    
-	    if ($orthology_count < $num_orthology) {
-		print OUT1 "\t";
-	    } else {
-		print OUT1 "\n";
-	    }
 	} else {
 	    print("Cannot read this line.\n");
 	}
@@ -463,20 +463,11 @@ for my $sp ( sort keys %subsets) {
 	    $seen2{$sp}{$orthology} = 1;
 	}
 
-	if ($orthology =~ /Species_specific/) {
-	    unless (exists $seen2{$sp}) {
-		my $species_specific_all = $gene_counts{$sp}{$orthology} + scalar(@unassigned_ogs);
-		print OUT2 "\t$species_specific_all";
-	    }
-	} else {
-	    unless (exists $seen2{$sp}) {
-		print OUT2 "\t$gene_counts{$sp}{$orthology}";
-	    }
-	}
-
 	if ($orthology_count < $num_orthology) {
+	    print OUT1 "\t";
 	    print OUT2 "\t";
 	} else {
+	    print OUT1 "\n";
 	    print OUT2 "\n";
 	}
     }
