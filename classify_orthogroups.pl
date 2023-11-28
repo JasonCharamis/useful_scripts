@@ -84,14 +84,14 @@ foreach (keys %species_unassigned) {
 
 my %OG2genes = (); ## hash to save the number of unassigned genes per species
 
-while (my $line3 = <IN3>) {
-    chomp $line3;
-    my @t = split(/: /, $line3);
-    
-    foreach ( @t ) {
-	$OG2genes{$t[0]} = $t[1]; # OG to genes
-    }
-}
+	while (my $line3 = <IN3>) {
+		chomp $line3;
+		my @t = split(/: /, $line3);
+		
+		foreach ( @t ) {
+		$OG2genes{$t[0]} = $t[1]; # OG to genes
+		}
+	}
 
 ##=============================================================## PARSE THROUGH THE Orthogroups.GeneCount.tsv FILE, COUNT OG REPRESENTATION AND GENERATE RELEVANT ORTHOGROUP CATEGORIES ##======================##
 while ( my $line = <IN> ) {
@@ -118,8 +118,8 @@ while ( my $line = <IN> ) {
 		if ( $f[$species] == 1 ) {
 		    $file{$f[0]}{$species} = $f[$species];
 		}
-	    }
-	}
+    }
+}
 
 	my $p = 0;
 	for my $phlebotomines (9..$number_of_cols-2) { #OGs present in phlebotominae with maximum species counts
@@ -134,7 +134,6 @@ while ( my $line = <IN> ) {
 	    if ( $f[$phlebotomus] > 0 ) {
 		$ph++;
 		$phlebotomus{$f[0]} = $ph;
-	    }
 	}
 
 	my $ltz = 0;
@@ -305,6 +304,7 @@ foreach ( sort keys %nematocera) { #orthogroups present in nematocera, with patc
 	}
     }
 }
+
 
 foreach ( sort keys %brachycera) { #orthogroups present in diptera, with patchy distribution
     unless ( exists $universal_single_copy{$_} ) {
