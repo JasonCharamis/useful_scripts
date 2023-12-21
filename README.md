@@ -1,2 +1,2 @@
 # useful_scripts
-Collection of useful scripts, mainly written in Perl and Python.
+Collection of useful scripts for everyday tasks.
