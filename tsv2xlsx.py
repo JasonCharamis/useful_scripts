@@ -1,4 +1,4 @@
-65;6003;1cimport pandas as pd
+import pandas as pd
 import re
 import argparse
 
