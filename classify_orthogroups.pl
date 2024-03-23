@@ -59,7 +59,7 @@ my %data = ();
 
 open ( IN, $ARGV[0] ); ## Orthogroups.GeneCount.tsv
 open ( IN2, $ARGV[1] ); ## Orthogroups_UnassignedGenes.tsv
-open ( IN3, $ARGV[2] ); ## Orthogroups.txt
+#open ( IN3, $ARGV[2] ); ## Orthogroups.txt
 
 open ( OUT0, ">orthology_distribution_for_R.txt" );
 open ( OUT1, ">OGs_per_category_per_species.txt" );
