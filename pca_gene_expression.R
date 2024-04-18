@@ -105,7 +105,7 @@ logTPM <- function(tpm, log_number = 2, dividebyten = TRUE) {
 #'     samples_list = "samples.list",
 #'     log_number = 2,
 #'     save = TRUE,
-#'     interactive = TRUE)
+#'     interactive = FALSE)
 #'   
 #' @export
 
