@@ -104,8 +104,32 @@ logTPM <- function(tpm, log_number = 2, dividebyten = TRUE) {
 #'
 #' @export
 
-pca <- function(tpm, samples_list, log_number = 2, save = TRUE) {
+pca <- function(tpm_file = NULL, 
+                samples_list = NULL, 
+                log_number = 2, 
+                save = TRUE,
+                filename = NULL,
+                interactive = FALSE ) {
+  
   # Convert TPM values to log2TPM values
+  
+  # Check if the script is run from the command line
+  if ( interactive == TRUE ) {
+    if (!is.null(tpm_file) || !is.null(samples_list)) {
+      stop("Option interactive is TRUE and input files are also provided.")
+    } 
+  
+    cat("Please choose the file with TPM values.\n")
+    tpm_file <- file.choose()
+    
+    cat("Please choose the file with sample groupings\n")
+    samples_list <- file.choose()
+    
+  } 
+  
+  tpm <- read.delim2(tpm_file, header = TRUE)
+  sample_groupings <- read.delim2(samples_list, header = FALSE)
+  
   rownames(tpm) <- tpm[, 1]
   tpm <- tpm[, -1]
   tpm_n <- sapply(colnames(tpm), function(x) {
@@ -117,15 +141,11 @@ pca <- function(tpm, samples_list, log_number = 2, save = TRUE) {
   })
   
   # Normalize to log2TPM values
-  logtpms <- logTPM(tpm_n, log_number = log_number, dividebyten = FALSE)
+  logtpms <- logTPM(tpm_n, log_number = log_number, dividebyten = FALSE) 
+  xt <- t(logtpms)
+  xtl <- as_tibble( xt ) %>% mutate(Group = sample_groupings$V1)
   
   # Run PCA analysis
-  xt = t(logtpms)
-  xt <- as.data.frame(xt)
-  groups <- samples_list$V1
-  xtl <- xt %>% add_column(Group = groups)
-  colnames(xt) <- colnames(xt)
-  
   pca_res = prcomp(xt, center = T, scale. = F)
   pve <- pca_res$sdev^2 / sum(pca_res$sdev^2) * 100
   PC1_variation_percent <- as.numeric(round(pve[1], 2))
@@ -155,28 +175,30 @@ pca <- function(tpm, samples_list, log_number = 2, save = TRUE) {
   
   if (exists("PCA_plot")) {
     if (save == TRUE) {
-      ggsave(plot = PCA_plot, filename = "PCA.svg", dpi = 600)
+      if ( is.null(filename) ) {
+        ggsave(plot = PCA_plot, filename = "PCA.svg", dpi = 600)
+      } else {
+         ggsave(plot = PCA_plot, filename = filename, dpi = 600)
+      }
     } else {
-      print("Plot will not be saved. Returning PCA plot")
+        if ( !is.null(filename) ) {
+          warning("Option to save is disabled.")
+        } else {
+            print("Plot will not be saved. Returning PCA plot")
+      }
     }
+    
     return(PCA_plot)
   }
 }
 
 
-# Check if the script is run from the command line
-if (interactive()) {
-  tpm <- read.delim2("counts.tpm.tsv", header = TRUE)
-  samples_list <- read.delim2("samples.list", header = FALSE)
-} else {
-  # Get input files from command line arguments
-  args <- commandArgs(trailingOnly = TRUE)
-  stopifnot(length(args) > 0, file.exists(args))
-  tpm <-  read.delim(args[1], header = TRUE)
-  samples_list <- read.delim2(args[2], header = TRUE)
+# Get input files from command line arguments
+if (!interactive()) {
+    args <- commandArgs(trailingOnly = TRUE)
+    stopifnot(length(args) > 0, file.exists(args))
+    tpm_file <- args[1]
+    samples_list <- args[2]
 }
 
-pca (tpm = tpm,
-     samples_list = samples_list,
-     log_number = 2,
-     save = TRUE)
+
