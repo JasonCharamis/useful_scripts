@@ -91,17 +91,22 @@ logTPM <- function(tpm, log_number = 2, dividebyten = TRUE) {
 #'
 #' This function performs a Principal Component Analysis (PCA) on a log2-transformed TPM (Transcripts Per Million) matrix and generates a PCA plot
 #'
-#' @param tpm A data frame or matrix containing the TPM values. The first column should contain the row names.
+#' @param tpm_file A data frame or matrix containing the TPM values. The first column should contain the row names.
 #' @param samples_list A data frame or vector containing the sample group information. The first column should contain the group names and the second the sample names.
 #' @param log_number The base of the logarithm to use for the transformation. Default is 2.
 #' @param save A logical value indicating whether to save the PCA plot as an SVG file. Default is TRUE.
-#'
+#' @param filename A string with the filename of output file. Default is 'PCA.svg'
+#' @param interactive A logical value indicating whether to get input files interactively by the user or defined as arguments. Default: FALSE.
+#' 
 #' @return The PCA plot as a ggplot object.
 #' @examples
-#' tpm <- read.delim2("counts.tpm.tsv", header = TRUE)
-#' samples_list <- read.delim2("samples.list", header = FALSE)
-#' pca_plot <- pca(tpm, samples_list)
-#'
+#' 
+#' pca (tpm_file = "counts.tpm.tsv",
+#'     samples_list = "samples.list",
+#'     log_number = 2,
+#'     save = TRUE,
+#'     interactive = TRUE)
+#'   
 #' @export
 
 pca <- function(tpm_file = NULL, 
