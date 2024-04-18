@@ -87,7 +87,7 @@ logTPM <- function(tpm, log_number = 2, dividebyten = TRUE) {
   return(logtpm)
 }
 
-#' Principal Component Analysis (PCA) using log2 Transformed TPM values
+#' Principal Component Analysis (PCA) from gene expression (RNAseq) data using log2 Transformed TPM values
 #'
 #' This function performs a Principal Component Analysis (PCA) on a log2-transformed TPM (Transcripts Per Million) matrix and generates a PCA plot
 #'
