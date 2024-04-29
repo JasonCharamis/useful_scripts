@@ -3,29 +3,38 @@ import argparse
 import re
 import openpyxl
 
-
 parser = argparse.ArgumentParser()
-parser.add_argument('--spreadsheet', type = str, help = 'Input spreasheet file.')
+parser.add_argument('--xlsx', type = str, help = 'Input xlsx spreasheet file.')
 args = parser.parse_args()
 
 
-def get_sheet_names(file):
-    try:
-        workbook = openpyxl.load_workbook(file)
-        sheet_names = workbook.sheetnames
+def xlsx_to_tsv(xlsx_file):
+    """
+    Convert an Excel XLSX file to a TSV file
+    """
+    
+    # Load the XLSX file
+    workbook = openpyxl.load_workbook(xlsx_file)
 
-        return sheet_names
+    # Get the active worksheet
+    worksheet = workbook.active
 
-    except Exception as e:
-        print(f"Error: {e}")
-        return None
+    # Create a list of rows
+    rows = []
+    
+    for row in worksheet.iter_rows():
+        row_data = []
+        for cell in row:
+            row_data.append(str(cell.value))
+        rows.append('\t'.join(row_data))
 
-sheet_names = get_sheet_names ( args.spreadsheet )
+    # Write the TSV file
 
-for sheet in sheet_names:
-    data_xlsx = pd.read_excel(args.spreadsheet, sheet, index_col=None)
-    data_xlsx.columns = [c.replace(' ', '_') for c in data_xlsx.columns]
-    df = data_xlsx.replace('\n', ' ',regex=True)
+    tsv_file = re.sub('.xlsx', '.tsv', xlsx_file)
+    
+    with open(tsv_file, 'w', encoding='utf-8') as tsv_file:
+        tsv_file.write('\n'.join(rows))
 
-    transposed_data = df.T
-    transposed_data.to_excel(f"{sheet}.xlsx", index=False)
+
+if __name__ == "__main__":
+    xlsx_to_tsv(xlsx_file = args.xlsx)

@@ -112,6 +112,7 @@ logTPM <- function(tpm, log_number = 2, dividebyten = TRUE) {
 pca <- function(tpm_file = NULL, 
                 samples_list = NULL, 
                 log_number = 2, 
+                fontsize = 12,
                 save = TRUE,
                 filename = NULL,
                 interactive = FALSE ) {
@@ -148,7 +149,7 @@ pca <- function(tpm_file = NULL,
   # Normalize to log2TPM values
   logtpms <- logTPM(tpm_n, log_number = log_number, dividebyten = FALSE) 
   xt <- t(logtpms)
-  xtl <- as_tibble( xt ) %>% mutate(Group = sample_groupings$V1)
+  xtl <- as_tibble( xt ) %>% mutate(Group = sample_groupings$V2)
   
   # Run PCA analysis
   pca_res = prcomp(xt, center = T, scale. = F)
@@ -158,8 +159,8 @@ pca <- function(tpm_file = NULL,
   
   # Create PCA plot
   PCA_plot <- ggplot(data = pca_res, aes(x = pca_res$x[, 1], y = pca_res$x[, 2])) +
-    geom_point(data = xtl, shape = 19, aes(color = Group)) +
-    geom_text_repel(data = xtl, aes(label = rownames(pca_res$x), color = Group), stat = "identity") +
+    geom_point(data = xtl, shape = 19, aes(color = Group), size = (fontsize/2)-5) +
+    geom_text_repel(data = xtl, aes(label = rownames(pca_res$x), color = Group), size = (fontsize/2)-3) +
     labs(
       title = expression(bold("Principal Component Analysis using log2TPM values")),
       x = paste("PC1: ", PC1_variation_percent, "%"),
@@ -167,15 +168,17 @@ pca <- function(tpm_file = NULL,
     ) +
     theme_clean() +
     theme(
-      plot.title = element_text(color = "black", size = 12, family = "Arial", face = "bold", hjust = 0.6),
-      axis.title.x = element_text(color = "black", size = 12, family = "Arial", face = "bold"),
-      axis.title.y = element_text(color = "black", size = 12, family = "Arial", face = "bold")
+      plot.title = element_text(color = "black", size = fontsize+5, family = "Arial", face = "bold", hjust = 0.6),
+      axis.title.x = element_text(color = "black", size = fontsize, family = "Arial", face = "bold"),
+      axis.title.y = element_text(color = "black", size = fontsize, family = "Arial", face = "bold"),
+      plot.margin = margin(r = 0.1, unit = "cm")
     ) +
     guides(color = guide_legend(
       override.aes = list(
         shape = 19, # Change the shape of the legend ticks
-        size = 2 # Change the size of the legend ticks
-      )
+        size = (fontsize/2)-3 # Change the size of the legend ticks
+      ),
+      text = element_text(size = (fontsize/2)-3) # Change the legend text size here
     ))
   
   if (exists("PCA_plot")) {
@@ -202,8 +205,8 @@ pca <- function(tpm_file = NULL,
 if (!interactive()) {
     args <- commandArgs(trailingOnly = TRUE)
     stopifnot(length(args) > 0, file.exists(args))
-    tpm_file <- args[1]
-    samples_list <- args[2]
+    
+    pca( tpm_file = args[1], samples_list = args[2] )
 }
 
 
