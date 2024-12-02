@@ -2,13 +2,21 @@ import pandas as pd
 import re
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument('filename')
-args = parser.parse_args()
+def tsv_to_xlsx(tsv_file):
+    # Read the TSV file
+    df = pd.read_csv(tsv_file, sep='\t', header=None)
+    
+    # Generate the XLSX filename
+    xlsx_file = re.sub(r'\.tsv$', '.xlsx', tsv_file)
+    
+    # Write to XLSX file
+    df.to_excel(xlsx_file, index=False, header=False)
+    
+    print(f"Converted {tsv_file} to {xlsx_file}")
 
-tsv_file = args.filename
-xlsx_file = re.sub('.tsv',".xlsx",tsv_file)
-
-df = pd.read_csv(tsv_file, sep='\t')
-
-df.to_excel(xlsx_file, index=False)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Convert TSV file to XLSX")
+    parser.add_argument('filename', help="Input TSV file")
+    args = parser.parse_args()
+    
+    tsv_to_xlsx(args.filename)

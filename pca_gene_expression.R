@@ -109,15 +109,17 @@ logTPM <- function(tpm, log_number = 2, dividebyten = TRUE) {
 #'   
 #' @export
 
-pca <- function(tpm_file = NULL, 
-                samples_list = NULL, 
-                log_number = 2, 
-                fontsize = 12,
-                save = TRUE,
-                filename = NULL,
-                interactive = FALSE ) {
-  
-  # Convert TPM values to log2TPM values
+pca <- function(
+    tpm_file = NULL, 
+    samples_list = NULL, 
+    log_number = 2,
+    labels = TRUE,
+    fontfamily = "Aileron",
+    fontsize = 12,
+    save = TRUE,
+    filename = NULL,
+    interactive = FALSE 
+) {
   
   # Check if the script is run from the command line
   if ( interactive == TRUE ) {
@@ -149,7 +151,7 @@ pca <- function(tpm_file = NULL,
   # Normalize to log2TPM values
   logtpms <- logTPM(tpm_n, log_number = log_number, dividebyten = FALSE) 
   xt <- t(logtpms)
-  xtl <- as_tibble( xt ) %>% mutate(Group = sample_groupings$V2)
+  xtl <- as_tibble( xt ) %>% mutate(Group = sample_groupings$V1)
   
   # Run PCA analysis
   pca_res = prcomp(xt, center = T, scale. = F)
@@ -157,10 +159,9 @@ pca <- function(tpm_file = NULL,
   PC1_variation_percent <- as.numeric(round(pve[1], 2))
   PC2_variation_percent <- as.numeric(round(pve[2], 2))
   
-  # Create PCA plot
+  # Create PCA plot with first two components, PC1 and PC2
   PCA_plot <- ggplot(data = pca_res, aes(x = pca_res$x[, 1], y = pca_res$x[, 2])) +
-    geom_point(data = xtl, shape = 19, aes(color = Group), size = (fontsize/2)-5) +
-    geom_text_repel(data = xtl, aes(label = rownames(pca_res$x), color = Group), size = (fontsize/2)-3) +
+    geom_point(data = xtl, shape = 21, aes(fill = Group), color = "black", size = (fontsize/2)-2) +
     labs(
       title = expression(bold("Principal Component Analysis using log2TPM values")),
       x = paste("PC1: ", PC1_variation_percent, "%"),
@@ -168,18 +169,26 @@ pca <- function(tpm_file = NULL,
     ) +
     theme_clean() +
     theme(
-      plot.title = element_text(color = "black", size = fontsize+5, family = "Arial", face = "bold", hjust = 0.6),
-      axis.title.x = element_text(color = "black", size = fontsize, family = "Arial", face = "bold"),
-      axis.title.y = element_text(color = "black", size = fontsize, family = "Arial", face = "bold"),
+      plot.title = element_text(color = "black", size = fontsize+5, family = fontfamily, face = "bold", hjust = 0.6),
+      axis.title.x = element_text(color = "black", size = fontsize+1, family = fontfamily, face = "bold"),
+      axis.title.y = element_text(color = "black", size = fontsize+1, family = fontfamily, face = "bold"),
+      axis.text.x = element_text(size = fontsize, family = fontfamily),
+      axis.text.y = element_text(size = fontsize, family = fontfamily),
       plot.margin = margin(r = 0.1, unit = "cm")
     ) +
     guides(color = guide_legend(
       override.aes = list(
         shape = 19, # Change the shape of the legend ticks
-        size = (fontsize/2)-3 # Change the size of the legend ticks
+        size = (fontsize/2)-3 
       ),
-      text = element_text(size = (fontsize/2)-3) # Change the legend text size here
+      title.theme = element_text(color = "black", size = fontsize, family = fontfamily, face = "bold"),
+      label.theme = element_text(color = "black", size = fontsize-3, family = fontfamily, face = "plain")
     ))
+  
+  if (labels == TRUE) {
+    PCA_plot <- PCA_plot +
+                geom_text_repel(data = xtl, aes(label = rownames(pca_res$x), color = Group), size = (fontsize/2)-3)
+  } 
   
   if (exists("PCA_plot")) {
     if (save == TRUE) {
@@ -196,7 +205,7 @@ pca <- function(tpm_file = NULL,
       }
     }
     
-    return(PCA_plot)
+    return(pca_res)
   }
 }
 
